@@ -1,0 +1,159 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: transmission
+spec:
+  restartPolicy: Always
+  volumes:
+  - name: transmission-data
+    glusterfs:
+      endpoints: glusterfs-cluster
+      path: ctorrent
+      readOnly: false
+  - name: nettun
+    hostPath:
+      path: "/dev/net/tun"
+  initContainers:
+  - name: nftables
+    image: randomcoww/k8s-nftables:latest
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+    env:
+    - name: CONFIG
+      value: |-
+        table ip filter {
+          chain output {
+            type filter hook output priority 30; policy drop;
+            ct state { established, related } accept
+            oifname "tun*" accept
+            skgid { "root" } accept
+            ip daddr { 192.168.0.0/16 } accept
+          }
+        }
+        ;
+  containers:
+  - name: openvpn
+    image: randomcoww/k8s-openvpn:latest
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+    args:
+    - "--route 192.168.0.0 255.255.0.0 net_gateway"
+    env:
+    - name: OVPN_CONFIG
+      value: |-
+        client
+        dev tun
+        proto udp
+        remote test.local 1194
+        resolv-retry infinite
+        nobind
+        persist-key
+        tls-client
+        remote-cert-tls server
+        comp-lzo
+        verb 3
+        reneg-sec 0
+        cipher BF-CBC
+        keepalive 10 30
+        route-nopull
+        redirect-gateway
+        fast-io
+    - name: OVPN_AUTH_USER_PASS
+      value: |-
+        user
+        pass
+    - name: OVPN_CA
+      value: |-
+        -----BEGIN CERTIFICATE-----
+        -----END CERTIFICATE-----
+    volumeMounts:
+    - mountPath: "/dev/net/tun"
+      name: nettun
+  - name: transmission
+    image: randomcoww/k8s-transmission:latest
+    ports:
+    - hostPort: 9091
+      containerPort: 9091
+    volumeMounts:
+    - mountPath: /var/lib/transmission-daemon
+      name: transmission-data
+    env:
+    - name: CONFIG
+      value: |-
+        {
+          "alt-speed-down": 1900,
+          "alt-speed-enabled": true,
+          "alt-speed-time-begin": 540,
+          "alt-speed-time-day": 127,
+          "alt-speed-time-enabled": false,
+          "alt-speed-time-end": 1020,
+          "alt-speed-up": 10,
+          "bind-address-ipv4": "0.0.0.0",
+          "bind-address-ipv6": "::",
+          "blocklist-enabled": false,
+          "blocklist-url": "http://www.example.com/blocklist",
+          "cache-size-mb": 4,
+          "dht-enabled": true,
+          "download-dir": "/var/lib/transmission-daemon/downloads",
+          "download-limit": 100,
+          "download-limit-enabled": 0,
+          "download-queue-enabled": true,
+          "download-queue-size": 5,
+          "encryption": 1,
+          "idle-seeding-limit": 30,
+          "idle-seeding-limit-enabled": false,
+          "incomplete-dir": "/var/lib/transmission-daemon/incomplete",
+          "incomplete-dir-enabled": true,
+          "lpd-enabled": false,
+          "max-peers-global": 200,
+          "message-level": 1,
+          "peer-congestion-algorithm": "",
+          "peer-id-ttl-hours": 6,
+          "peer-limit-global": 34919,
+          "peer-limit-per-torrent": 16959,
+          "peer-port": 51413,
+          "peer-port-random-high": 65535,
+          "peer-port-random-low": 49152,
+          "peer-port-random-on-start": false,
+          "peer-socket-tos": "default",
+          "pex-enabled": true,
+          "port-forwarding-enabled": false,
+          "preallocation": 1,
+          "prefetch-enabled": true,
+          "queue-stalled-enabled": true,
+          "queue-stalled-minutes": 30,
+          "ratio-limit": 0,
+          "ratio-limit-enabled": false,
+          "rename-partial-files": true,
+          "rpc-authentication-required": false,
+          "rpc-bind-address": "0.0.0.0",
+          "rpc-enabled": true,
+          "rpc-port": 9091,
+          "rpc-url": "/transmission/",
+          "rpc-username": "transmission",
+          "rpc-whitelist": "127.0.0.1",
+          "rpc-whitelist-enabled": false,
+          "scrape-paused-torrents-enabled": true,
+          "script-torrent-done-enabled": false,
+          "script-torrent-done-filename": "",
+          "seed-queue-enabled": false,
+          "seed-queue-size": 10,
+          "speed-limit-down": 100,
+          "speed-limit-down-enabled": false,
+          "speed-limit-up": 100,
+          "speed-limit-up-enabled": false,
+          "start-added-torrents": false,
+          "trash-original-torrent-files": false,
+          "umask": 18,
+          "upload-limit": 100,
+          "upload-limit-enabled": 0,
+          "upload-slots-per-torrent": 14,
+          "utp-enabled": true,
+          "watch-dir": "/var/lib/transmission-daemon/watch",
+          "watch-dir-enabled": true
+        }
