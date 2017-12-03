@@ -1,7 +1,8 @@
 FROM alpine:latest
 
-RUN \
-  apk add --no-cache transmission-daemon
+RUN set -x \
+  \
+  && apk add --no-cache transmission-daemon
 
 COPY entrypoint.sh /
 
