@@ -6,5 +6,5 @@ RUN set -x \
 
 COPY entrypoint.sh /
 
-USER root:transmission
+USER 0:101
 ENTRYPOINT ["/entrypoint.sh"]
