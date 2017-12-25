@@ -8,4 +8,5 @@ RUN set -x \
 
 COPY entrypoint.sh /
 
+USER root:transmission
 ENTRYPOINT ["/entrypoint.sh"]
