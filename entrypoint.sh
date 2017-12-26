@@ -2,8 +2,8 @@
 echo -en "$CONFIG" > /var/lib/transmission/settings.json
 
 ## start
-exec transmission-daemon \
+exec sg transmission -c "exec transmission-daemon \
   --config-dir /var/lib/transmission \
   $@ \
   --foreground \
-  --log-error
+  --log-error"
