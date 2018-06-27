@@ -4,6 +4,5 @@ RUN set -x \
   \
   && apk add --no-cache transmission-daemon
 
-COPY entrypoint.sh /
-
-ENTRYPOINT ["/entrypoint.sh"]
+COPY docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
