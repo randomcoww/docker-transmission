@@ -1,12 +1,15 @@
 #!/bin/sh
 
-if [ -n "$TRANSMISSION_LOCAL_CONFIG" ]; then
-  echo -en "$TRANSMISSION_LOCAL_CONFIG" > /var/lib/transmission/settings.json
-fi
+config_file=${CONFIG_FILE:-/etc/transmission/settings.json}
+config_dir=${CONFIG_DIR:-/var/lib/transmission}
+
+## relocate config_file so that 
+## bnth config_dir and config_file may be mounted without conflict
+ln -fs $config_dir/settings.json $config_file
 
 ## start
 exec transmission-daemon \
-  --config-dir /var/lib/transmission \
+  --config-dir $config_dir \
   $@ \
   --foreground \
   --log-error
