@@ -6,9 +6,7 @@ config_dir=${CONFIG_DIR:-/var/lib/transmission}
 mount_dir=${MOUNT_DIR:-/etc/transmission}
 
 ## Preserve this data in mounted volume
-mkdir -p $mount_dir/resume
 mkdir -p $mount_dir/torrents
-ln -sf $mount_dir/resume $config_dir/resume
 ln -sf $mount_dir/torrents $config_dir/torrents
 
 ## Config file must be at $config_dir/settings.json
