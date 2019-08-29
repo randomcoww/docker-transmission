@@ -2,12 +2,15 @@
 
 ## Working path for transmission
 config_dir=${CONFIG_DIR:-/var/lib/transmission}
-## Mount external volume here and symlink paths to config_dir
-mount_dir=${MOUNT_DIR:-/etc/transmission}
 
-## Preserve this data in mounted volume
-mkdir -p $mount_dir/torrents
-ln -sf $mount_dir/torrents $config_dir/torrents
+## By default, torrents and resume are created automatically under $config_dir
+## and path cannot be cspecified. Make this more configurable for external mounts
+torrents_dir=${TORRENTS_DIR:-/transmission/torrents}
+resume_dir=${RESUME_DIR:-/transmission/resume}
+mkdir -p $torrents_dir
+ln -sf $torrents_dir $config_dir/torrents
+mkdir -p $resume_dir
+ln -sf $resume_dir $config_dir/resume
 
 ## Config file must be at $config_dir/settings.json
 ## This may be mounted from configMap
