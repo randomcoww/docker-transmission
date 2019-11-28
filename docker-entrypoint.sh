@@ -22,5 +22,4 @@ exec transmission-daemon \
   $@ \
   --config-dir $config_dir \
   --foreground \
-  --log-error \
   --port 9091
