@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 ## Working path for transmission
 config_dir=${CONFIG_DIR:-/var/lib/transmission}

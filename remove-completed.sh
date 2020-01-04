@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # https://github.com/transmission/transmission/wiki/Scripts
 #  * TR_APP_VERSION
